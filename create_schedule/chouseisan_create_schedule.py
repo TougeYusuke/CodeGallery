@@ -120,8 +120,6 @@ while deltatime <= 0:
 input_element = driver.find_element(by=By.XPATH, value='//*[@id="listUrl"]')
 # テキストを取得
 text_value = input_element.get_attribute("value")
-# 結果を表示
-print("取得したテキスト:", text_value)
 
 notice_text = text_value + messagetext
 discord_notify(apiurl, notice_text)
