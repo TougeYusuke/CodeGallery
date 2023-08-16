@@ -11,12 +11,23 @@ import openpyxl
 def xor(a,b):
     return bool(a) != bool(b)
 
+# 無効な文字をアンダースコアに置き換える
 def clean_sheet_name(name):
-    # 無効な文字をアンダースコアに置き換える
     invalid_chars = ['[', ']', ':', '*', '?', '/', '\\']
     cleaned_name = ''.join('_' if char in invalid_chars else char for char in name)
     return cleaned_name
 
+# 対象のインデックスを取得
+def find_to_index(list, value):
+    if value in list:
+        return value.index(value)
+    else:
+        return -1
+    
+# テキストの空判定
+def is_empty_string(string):
+    return not string
+    
 # サイトを開いた際の設定
 def site_setting():
     # サーバーの設定
@@ -104,6 +115,25 @@ def gat_price(parent_element, is_hq):
 
     return price
 
+# 最後にアクセスしたアドレスを保存
+def load_last_access_address():
+    result = ""
+    try:
+        file = open(save_file_name, "r")
+        result = file.readline()
+        file.close()
+    except:
+        # 読み込みに失敗したら、ファイルの生成を行なう
+        file = open(save_file_name, "w")
+        file.close()
+
+    return result
+
+# 最後にアクセスしたアドレスを保存
+def save_last_access_address(url):
+    file = open(save_file_name, "w")
+    file.write(url)
+    file.close()
 
 # WebDriverのインスタンスを作成（Chromeを使用する例）
 # ChromeDriverがインストールされている必要があります
