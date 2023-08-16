@@ -135,22 +135,23 @@ def save_last_access_address(url):
     file.write(url)
     file.close()
 
+excel_file_name = "MarketBoudePriceList.xlsx"
+save_file_name = "savedata.txt"
+
+
 # WebDriverのインスタンスを作成（Chromeを使用する例）
 # ChromeDriverがインストールされている必要があります
 driver = webdriver.Chrome()
 
 # 適当なアイテムのURLを設定
-url = 'https://universalis.app/market/39722'
-
-# エクセルファイル名の設定
-excel_file_name = "MarketBoudePriceList.xlsx"
+start_url = load_last_access_address()
 
 excel_data_reset()
 
 # ページを開く
-driver.get(url)
+driver.get("https://universalis.app/market/34563")
 
-time.sleep(1)
+time.sleep(3)
 
 # 初回アクセス時のサイトの初期設定
 site_setting()
@@ -158,141 +159,161 @@ site_setting()
 # アイテムのURLを取得
 url_class_list = ["type-weapons", "type-armor", "type-items", "type-housing"]
 
+url_list = []
+url_category_name_list = []
 for url_class in url_class_list:
     #カテゴリリストを取得
     category_element_list = get_category_list(url_class)
 
-    url_list = []
-    url_category_name_list = []
-    
     for category_element in category_element_list:
         # URLリストの取得
         url_list.append(get_url_list(category_element))
         # カテゴリ名を保存
         url_category_name_list.append(category_element.text.strip())
 
-    category_index = 0
-    # 数が多いのでカテゴリごとに分けて出力
-    for item_category_url_list in url_list:
-        data_list = []
+category_index = 0
+comeback = is_empty_string(start_url)
 
-        for url in item_category_url_list:
-            # ページを開く
-            driver.get(url)
+# 数が多いのでカテゴリごとに分けて出力
+for item_category_url_list in url_list:
+    data_list = []
 
-            # アイテム名を取得
-            item_name = get_item_name()
+    for url in item_category_url_list:
+        # 指定のファイルから再開
+        if not comeback and url != start_url:
+            continue
+        comeback = True
+        
+        # ページを開く
+        driver.get(url)
 
-            #カテゴリの取得
-            category_name_elem = driver.find_element(By.CLASS_NAME, 'item_info2')
-            category_name = category_name_elem.text.split(); 
+        # アイテム名を取得
+        item_name = get_item_name()
 
-            wait = WebDriverWait(driver, 10)
+        #カテゴリの取得
+        category_name_elem = driver.find_element(By.CLASS_NAME, 'item_info2')
+        category_name = category_name_elem.text.split(); 
 
-            try:
-                # 価格一覧を取得
-                class_name = '.price-current'                   # class属性名
-                prive_list_elem = driver.find_element(By.XPATH, '/html/body/div[1]/div/div[1]/main/div/div/div[2]/div[7]/div[1]/div[1]/div/table')
-                class_elems = prive_list_elem.find_elements(By.CSS_SELECTOR, class_name) 
+        wait = WebDriverWait(driver, 10)
 
-                # 出品がない
-                if len(class_elems) <= 0:
-                    hq_price = -1
-                    nq_price = -1
-                else:
-                    #HQソートサーバーをクリック    
-                    hq_sort_xpath = '/html/body/div[1]/div/div[1]/main/div/div/div[2]/div[7]/div[1]/div[1]/div/table/thead/tr/th[2]'
-                    hq_sort_element = wait.until(EC.presence_of_element_located((By.XPATH, hq_sort_xpath)))
-                    hq_sort_element.click()
-                    time.sleep(1)
+        try:
+            # 価格一覧を取得
+            class_name = '.price-current'                   # class属性名
+            prive_list_elem = driver.find_element(By.XPATH, '/html/body/div[1]/div/div[1]/main/div/div/div[2]/div[7]/div[1]/div[1]/div/table')
+            class_elems = prive_list_elem.find_elements(By.CSS_SELECTOR, class_name) 
 
-                    # HQアイテムを取得
-                    for elems in class_elems:
-                        # テキストが空なら何もしない
-                        if elems.text.strip():
-                            parent_element = elems.find_element(By.XPATH, "..")
-                            # 価格を取得
-                            hq_price = gat_price(parent_element, True)
-                            # 1つ取得したら終了
-                            break
-
-                    # HQソートサーバーをクリック
-                    hq_sort_element.click()
-                    time.sleep(1)
-
-                    # NQアイテムを取得
-                    for elems in class_elems:
-                        # テキストが空なら何もしない
-                        if elems.text.strip():
-                            parent_element = elems.find_element(By.XPATH, "..")
-                            # 価格を取得
-                            nq_price = gat_price(parent_element, False)
-                            # 1つ取得したら終了
-                            break
-                
-                prive_list_elem = driver.find_element(By.XPATH, '/html/body/div[1]/div/div[1]/main/div/div/div[2]/div[7]/div[1]/div[2]/div/table')
-                class_elems = prive_list_elem.find_elements(By.CSS_SELECTOR, class_name) 
-
-                # 出品がない
-                if len(class_elems) <= 0:
-                    histry_hq_price = -1
-                    histry_nq_price = -1
-                else:
-                    #HQソートサーバーをクリック    
-                    history_hq_sort_xpath = '/html/body/div[1]/div/div[1]/main/div/div/div[2]/div[7]/div[1]/div[2]/div/table/thead/tr/th[2]'
-                    history_hq_sort_element = wait.until(EC.presence_of_element_located((By.XPATH, history_hq_sort_xpath)))
-                    history_hq_sort_element.click()
-                    time.sleep(1)
-
-                    # HQアイテムを取得
-                    for elems in class_elems:
-                        # テキストが空なら何もしない
-                        if elems.text.strip():
-                            parent_element = elems.find_element(By.XPATH, "..")
-                            # 価格を取得
-                            histry_hq_price = gat_price(parent_element, True)
-
-                            #最終取引時間の取得
-                            histry_date_element = parent_element.find_element(By.CSS_SELECTOR, ".price-date")
-                            histry_date_hq = histry_date_element.text.strip()
-                            
-                            #1つ取得したら終了
-                            break
-
-                    #HQソートサーバーをクリック
-                    history_hq_sort_element.click()
-                    time.sleep(1)
-
-                    # NQアイテムを取得
-                    for elems in class_elems:
-                          # テキストが空なら何もしない
-                        if elems.text.strip():
-                            parent_element = elems.find_element(By.XPATH, "..")
-                            # 価格を取得
-                            histry_nq_price = gat_price(parent_element, True)
-
-                            #最終取引時間の取得
-                            histry_date_element = parent_element.find_element(By.CSS_SELECTOR, ".price-date")
-                            histry_date_nq = histry_date_element.text.strip()
-
-                            #1つ取得したら終了
-                            break
-            except:
+            # 出品がない
+            if len(class_elems) <= 0:
                 hq_price = -1
                 nq_price = -1
+            else:
+                #HQソートサーバーをクリック    
+                hq_sort_xpath = '/html/body/div[1]/div/div[1]/main/div/div/div[2]/div[7]/div[1]/div[1]/div/table/thead/tr/th[2]'
+                hq_sort_element = wait.until(EC.presence_of_element_located((By.XPATH, hq_sort_xpath)))
+                hq_sort_element.click()
+                time.sleep(1)
+
+                # HQアイテムを取得
+                for elems in class_elems:
+                    # テキストが空なら何もしない
+                    if elems.text.strip():
+                        parent_element = elems.find_element(By.XPATH, "..")
+                        # 価格を取得
+                        hq_price = gat_price(parent_element, True)
+                        # 1つ取得したら終了
+                        break
+
+                # HQソートサーバーをクリック
+                hq_sort_element.click()
+                time.sleep(1)
+
+                # NQアイテムを取得
+                for elems in class_elems:
+                    # テキストが空なら何もしない
+                    if elems.text.strip():
+                        parent_element = elems.find_element(By.XPATH, "..")
+                        # 価格を取得
+                        nq_price = gat_price(parent_element, False)
+                        # 1つ取得したら終了
+                        break
+            
+            prive_list_elem = driver.find_element(By.XPATH, '/html/body/div[1]/div/div[1]/main/div/div/div[2]/div[7]/div[1]/div[2]/div/table')
+            class_elems = prive_list_elem.find_elements(By.CSS_SELECTOR, class_name) 
+
+            # 出品がない
+            if len(class_elems) <= 0:
                 histry_hq_price = -1
                 histry_nq_price = -1
-                histry_date_hq = ""
+            else:
+                #HQソートサーバーをクリック    
+                history_hq_sort_xpath = '/html/body/div[1]/div/div[1]/main/div/div/div[2]/div[7]/div[1]/div[2]/div/table/thead/tr/th[2]'
+                history_hq_sort_element = wait.until(EC.presence_of_element_located((By.XPATH, history_hq_sort_xpath)))
+                history_hq_sort_element.click()
+                time.sleep(1)
 
-            # リストデータに登録
-            data_list.append((item_name + '_HQ', category_name[0], category_name[2], hq_price, histry_hq_price, histry_date_hq))
-            data_list.append((item_name + '_NQ', category_name[0], category_name[2], nq_price, histry_nq_price, histry_date_nq))
+                # HQアイテムを取得
+                for elems in class_elems:
+                    # テキストが空なら何もしない
+                    if elems.text.strip():
+                        parent_element = elems.find_element(By.XPATH, "..")
+                        # 価格を取得
+                        histry_hq_price = gat_price(parent_element, True)
 
+                        #最終取引時間の取得
+                        histry_date_element = parent_element.find_element(By.CSS_SELECTOR, ".price-date")
+                        histry_date_hq = histry_date_element.text.strip()
+                        
+                        #1つ取得したら終了
+                        break
+
+                #HQソートサーバーをクリック
+                history_hq_sort_element.click()
+                time.sleep(1)
+
+                # NQアイテムを取得
+                for elems in class_elems:
+                        # テキストが空なら何もしない
+                    if elems.text.strip():
+                        parent_element = elems.find_element(By.XPATH, "..")
+                        # 価格を取得
+                        histry_nq_price = gat_price(parent_element, True)
+
+                        #最終取引時間の取得
+                        histry_date_element = parent_element.find_element(By.CSS_SELECTOR, ".price-date")
+                        histry_date_nq = histry_date_element.text.strip()
+
+                        #1つ取得したら終了
+                        break
+        except:
+            hq_price = -1
+            nq_price = -1
+            histry_hq_price = -1
+            histry_nq_price = -1
+            histry_date_hq = ""
+
+        # リストデータに登録
+        data_list.append((item_name + '_HQ', category_name[0], category_name[2], hq_price, histry_hq_price, histry_date_hq))
+        data_list.append((item_name + '_NQ', category_name[0], category_name[2], nq_price, histry_nq_price, histry_date_nq))
+
+        save_last_access_address(url)
+
+    if len(data_list) > 0:
         # エクセルファイルにデータを出力
         wb = openpyxl.load_workbook(excel_file_name)
 
+        # 不正な文字列を「_」へ置き換え
         sheet_name = clean_sheet_name(url_category_name_list[category_index])
-        ws = wb.create_sheet(sheet_name)
+
+        # シート名を取得
+        sheet_name_list = wb.sheetnames
+        index = find_to_index(sheet_name_list, sheet_name)
+
+        if index < 0:
+            # 新規シートを作成
+            ws = wb.create_sheet(sheet_name)
+        else:
+            # シートを移動
+            ws = wb.worksheets[index]
 
         ws.append(["アイテム名", "カテゴリ", "サブカテゴリ", "値段", "取引値段", "最終取引日時"])
 
@@ -302,8 +323,8 @@ for url_class in url_class_list:
         # ファイル保存
         wb.save(excel_file_name)
         wb.close()
-        
-        category_index += 1
+
+    category_index += 1
 
 # WebDriverを閉じる
 driver.quit()
