@@ -138,7 +138,6 @@ def save_last_access_address(url):
 excel_file_name = "MarketBoudePriceList.xlsx"
 save_file_name = "savedata.txt"
 
-
 # WebDriverのインスタンスを作成（Chromeを使用する例）
 # ChromeDriverがインストールされている必要があります
 driver = webdriver.Chrome()
@@ -146,9 +145,11 @@ driver = webdriver.Chrome()
 # 適当なアイテムのURLを設定
 start_url = load_last_access_address()
 
-excel_data_reset()
+# 再開ではない場合は、エクセルデータを初期化する
+if not start_url:
+    excel_data_reset()
 
-# ページを開く
+# とりあえず、適当なページを開く
 driver.get("https://universalis.app/market/34563")
 
 time.sleep(3)
