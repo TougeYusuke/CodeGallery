@@ -1,3 +1,4 @@
+import csv
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -68,7 +69,8 @@ def get_category_list(url_category_text):
     return category_btn_element_list
 
 # URLリストの取得
-def get_url_list(category_btn_element):
+def get_url_list(category_btn_element, excel_worksheet_data):
+    # 読み込みに失敗したら、ファイルの生成を行なう
     url_list = []
 
     # カテゴリボタンをクリックし、項目を表示
@@ -84,6 +86,10 @@ def get_url_list(category_btn_element):
         if href_value and searchText in href_value:
             url_list.append(href_value)
         
+    for url in url_list:
+        # URLキャッシュデータに保存
+        excel_worksheet_data.append([category_btn_element.text.strip(), url])
+    
     return url_list
 
 # アイテム名の取得
@@ -137,6 +143,7 @@ def save_last_access_address(url):
 
 excel_file_name = "MarketBoudePriceList.xlsx"
 save_file_name = "savedata.txt"
+url_list_file_name = "url_list.xlsx"
 
 # WebDriverのインスタンスを作成（Chromeを使用する例）
 # ChromeDriverがインストールされている必要があります
@@ -157,20 +164,66 @@ time.sleep(3)
 # 初回アクセス時のサイトの初期設定
 site_setting()
 
-# アイテムのURLを取得
-url_class_list = ["type-weapons", "type-armor", "type-items", "type-housing"]
-
-url_list = []
 url_category_name_list = []
-for url_class in url_class_list:
-    #カテゴリリストを取得
-    category_element_list = get_category_list(url_class)
+url_list = []
 
-    for category_element in category_element_list:
-        # URLリストの取得
-        url_list.append(get_url_list(category_element))
-        # カテゴリ名を保存
-        url_category_name_list.append(category_element.text.strip())
+try:
+    wb = openpyxl.load_workbook(url_list_file_name)
+    ws = wb.active
+
+    prev_category_name = ""
+    load_url_list = []
+
+    # エクセルデータを解析
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        category  = row[0]
+        url = row[1]
+
+        # カテゴリが切り替わったら保存
+        if category != prev_category_name:
+            url_category_name_list.append(category)
+            prev_category_name = category
+
+            # 1つ以上項目が設定されている場合のみ対象
+            if len(load_url_list)>0:
+                # 読み込み終わっているURLをリストへ登録
+                url_list.append(load_url_list)
+                load_url_list.clear()
+
+        load_url_list.append(url)
+
+    # すべてのデータを読み込み終わったら、読み込み済みのurlをリストへ登録
+    url_list.append(load_url_list)
+    
+    wb.close()
+
+except:
+    # アイテムのURLを取得
+    url_class_list = ["type-weapons", "type-armor", "type-items", "type-housing"]
+
+    # エクセルファイルにデータを出力
+    try:
+        wb = openpyxl.load_workbook(excel_file_name)
+    except:
+        wb = openpyxl.Workbook()        
+
+    ws = wb.active
+    ws.append(["Category", "URL"])
+
+    for url_class in url_class_list:
+        #カテゴリリストを取得
+        category_element_list = get_category_list(url_class)
+
+        for category_element in category_element_list:
+            # URLリストの取得
+            url_list.append(get_url_list(category_element, ws))
+            # カテゴリ名を保存
+            url_category_name_list.append(category_element.text.strip())
+        
+    # ファイル保存
+    wb.save(url_list_file_name)
+    wb.close()
+
 
 category_index = 0
 comeback = is_empty_string(start_url)
