@@ -2,7 +2,7 @@
     display: grid;
     grid-template-columns: 100px 100px 100px;
     gap: 5px;
-    margin: 20px 0;
+    margin: 20px auto;  /* ゲームボードを中央に配置 */
 }
 
 .game-board div {
@@ -18,10 +18,18 @@
 
 button {
     display: block;
-    margin: 20px auto;
+    margin: 20px auto;  /* ボタンを中央に配置 */
     padding: 10px 20px;
     background-color: #007BFF;
     color: #fff;
     border: none;
     cursor: pointer;
+}
+
+/* ゲームボードとボタンを配置するためのflexコンテナを追加 */
+main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
 }
