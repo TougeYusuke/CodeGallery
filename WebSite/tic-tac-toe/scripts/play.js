@@ -4,6 +4,9 @@ document.addEventListener("DOMContentLoaded", function() {
     let moves = 0;
     const cells = [];
 
+    const winningMessage = () => `${currentPlayer} の勝ち！`;
+    const drawMessage = () => `引き分け！`;
+
     for (let i = 0; i < 9; i++) {
         const cell = document.createElement("div");
         cell.addEventListener("click", cellClicked);
@@ -16,11 +19,15 @@ document.addEventListener("DOMContentLoaded", function() {
             e.target.textContent = currentPlayer;
             moves++;
             if (checkWin()) {
-                setTimeout(() => alert(currentPlayer + "の勝ち！"), 10);
-                resetGame();
+                setTimeout(() => {
+                    alert(winningMessage());
+                    resetGame();
+                }, 100);
             } else if (moves === 9) {
-                setTimeout(() => alert("引き分け！"), 10);
-                resetGame();
+                setTimeout(() => {
+                    alert(drawMessage());
+                    resetGame();
+                }, 100);
             } else {
                 currentPlayer = currentPlayer === "○" ? "×" : "○";
             }
