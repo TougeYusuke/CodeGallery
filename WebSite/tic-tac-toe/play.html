@@ -18,21 +18,47 @@
         </nav>
     </header>
     <main>
-        <div class="game-board">
-            <div data-cell-index="0" class="cell"></div>
-            <div data-cell-index="1" class="cell"></div>
-            <div data-cell-index="2" class="cell"></div>
-            <div data-cell-index="3" class="cell"></div>
-            <div data-cell-index="4" class="cell"></div>
-            <div data-cell-index="5" class="cell"></div>
-            <div data-cell-index="6" class="cell"></div>
-            <div data-cell-index="7" class="cell"></div>
-            <div data-cell-index="8" class="cell"></div>
+
+    <!-- タイトル画面 -->
+    <div id="titleScreen">
+        <h1>難易度選択:</h1>
+        <div>
+            <button onclick="setDifficulty('easy')">簡単</button>
+            <button onclick="setDifficulty('normal')">普通</button>
+            <button onclick="setDifficulty('hard')">難しい</button>
         </div>
+    </div> 
+
+    <!-- ゲーム画面 -->
+    <div id="gameBoard">
+        <div class="game-board">
+            <div data-cell-index="0" onclick="onCellClicked(event)"></div>
+            <div data-cell-index="1" onclick="onCellClicked(event)"></div>
+            <div data-cell-index="2" onclick="onCellClicked(event)"></div>
+        </div>
+        <div class="game-board">
+            <div data-cell-index="3" onclick="onCellClicked(event)"></div>
+            <div data-cell-index="4" onclick="onCellClicked(event)"></div>
+            <div data-cell-index="5" onclick="onCellClicked(event)"></div>
+        </div>
+        <div class="game-board">
+            <div data-cell-index="6" onclick="onCellClicked(event)"></div>
+            <div data-cell-index="7" onclick="onCellClicked(event)"></div>
+            <div data-cell-index="8" onclick="onCellClicked(event)"></div>
+        </div>
+
         <button onclick="resetGame()">ゲームをリセット</button>
+    </div>
+        
+    <!-- 結果画面 -->
+    <div id="resultScreen" class="screen">
+        <h1 id="winnerText">勝者: </h1>
+        <button onclick="toTitle()">もう一度プレイ</button>
+    </div>
     </main>
     <footer>
         <p>© 2023 マルバツゲーム</p>
     </footer>
 </body>
 </html>
+l>
